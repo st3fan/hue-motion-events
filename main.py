@@ -59,18 +59,20 @@ async def receive_events(application_key: str, event_stream_url: str, conn: asyn
         "Accept": "text/event-stream"
     }
 
-    async with ClientSession(headers=headers, raise_for_status=True) as session:
-        async with EventSource(event_stream_url, session=session, verify_ssl=False) as events:
-            try:
-                async for event in events:
-                    try:
-                        await process_message_event(event, conn)
-                    except Exception as e:
-                        logger.error(f"Error while processing event", e)
-            except ConnectionError as e:
-                logger.error(f"Error connecting to {event_stream_url}", e)
-            except Exception as e:
-                logger.error("Error handling events", e)
+    while True:
+        async with ClientSession(headers=headers, raise_for_status=True) as session:
+            async with EventSource(event_stream_url, session=session, timeout=None, verify_ssl=False) as events:
+                try:
+                    async for event in events:
+                        try:
+                            await process_message_event(event, conn)
+                        except Exception as e:
+                            logger.exception(f"Error while processing event")
+                except ConnectionError as e:
+                    logger.exception(f"Error connecting to {event_stream_url}")
+                except Exception as e:
+                    logger.exception("Error handling events")
+            await asyncio.sleep(2.5)
 
 
 async def main():
