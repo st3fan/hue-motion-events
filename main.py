@@ -50,7 +50,6 @@ def _parse_motion_events(message_event_data: dict) -> Generator[MotionEvent, Non
 async def process_message_event(message_event: MessageEvent, conn: asyncpg.connection.Connection):
     message_event_data = json.loads(message_event.data)
     for event in _parse_motion_events(message_event_data):
-        print(event)
         await conn.execute("insert into motion_events (ts, device_id, motion) values ($1, $2, $3)", event.creationtime, event.device_id, event.motion)
 
 
@@ -67,7 +66,7 @@ async def receive_events(application_key: str, event_stream_url: str, conn: asyn
                     try:
                         await process_message_event(event, conn)
                     except Exception as e:
-                        logger.error(f"Error processing event <{event}>", e)
+                        logger.error(f"Error while processing event", e)
             except ConnectionError as e:
                 logger.error(f"Error connecting to {event_stream_url}", e)
             except Exception as e:
