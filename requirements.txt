@@ -1,0 +1,4 @@
+aiohttp==3.8.3
+aiohttp-sse-client==0.2.1
+asyncpg==0.27.0
+iso8601==1.1.0
